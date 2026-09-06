@@ -73,3 +73,41 @@ export interface HistoryFilters {
   limit?: number;
   offset?: number;
 }
+
+/** One row of scripts/04_evaluate.py, per category. */
+export interface ThresholdReport {
+  threshold: number;
+  images: number;
+  good: number;
+  defective: number;
+  at_threshold: {
+    tp: number;
+    fp: number;
+    tn: number;
+    fn: number;
+    precision: number;
+    recall: number;
+    specificity: number;
+    accuracy: number;
+    f1: number;
+  };
+  /** Null when no swept boundary reaches zero false negatives. */
+  zero_false_negative: { threshold: number; fp: number; fn: number } | null;
+  latency_ms: { mean: number; p50: number; p95: number; max: number };
+}
+
+/** Per-stage timing from scripts/05_benchmark_latency.py. */
+export interface LatencyStage {
+  mean: number;
+  p50: number;
+  p95: number;
+  max: number;
+}
+
+export interface LatencyReport {
+  backbone: string;
+  model_load_seconds: number;
+  repeats_per_category: number;
+  categories: Record<string, Record<string, LatencyStage>>;
+  share_of_total: Record<string, number>;
+}

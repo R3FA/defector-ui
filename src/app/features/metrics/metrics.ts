@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 
-import { Stats } from '../../core/models';
+import { LatencyReport, Stats, ThresholdReport } from '../../core/models';
 import { QcApi } from '../../core/qc-api';
 
 /** One row of the detector table, flattened from artifacts/metrics.json. */
@@ -62,6 +62,24 @@ export class Metrics {
     'fitMinutes',
   ];
   protected readonly liveColumns = ['category', 'total', 'defective', 'rate'];
+  protected readonly thresholdColumns = [
+    'category',
+    'threshold',
+    'tp',
+    'fp',
+    'tn',
+    'fn',
+    'recall',
+    'precision',
+  ];
+  protected readonly stageColumns = [
+    'category',
+    'decode',
+    'classify',
+    'detect',
+    'render',
+    'total',
+  ];
 
   protected readonly config = computed(
     () => this.payload()?.['detectors']?.config ?? null,
@@ -95,6 +113,47 @@ export class Metrics {
       errors: value.errors,
       ties: value.ties,
     }));
+  });
+
+  /**
+   * The operating point, which AUROC does not describe. A high AUROC can still
+   * sit on a threshold that rejects most good parts, and that is what these
+   * rows show.
+   */
+  protected readonly thresholdRows = computed(() => {
+    const categories: Record<string, ThresholdReport> =
+      this.payload()?.['thresholds']?.categories ?? {};
+    return Object.entries(categories).map(([category, report]) => ({
+      category,
+      threshold: report.threshold,
+      ...report.at_threshold,
+      good: report.good,
+      zeroFn: report.zero_false_negative,
+      falseAlarmRate: report.good ? report.at_threshold.fp / report.good : 0,
+    }));
+  });
+
+  protected readonly latency = computed<LatencyReport | null>(
+    () => this.payload()?.['latency'] ?? null,
+  );
+
+  protected readonly stageRows = computed(() => {
+    const categories = this.latency()?.categories ?? {};
+    return Object.entries(categories).map(([category, stages]) => ({
+      category,
+      decode: stages['decode'],
+      classify: stages['classify'],
+      detect: stages['detect'],
+      render: stages['render'],
+      total: stages['total'],
+    }));
+  });
+
+  protected readonly shares = computed(() => {
+    const share = this.latency()?.share_of_total ?? {};
+    return Object.entries(share)
+      .map(([stage, value]) => ({ stage, value }))
+      .sort((a, b) => b.value - a.value);
   });
 
   protected readonly liveRows = computed(() => {

@@ -144,6 +144,129 @@
     </mat-card>
   }
 
+
+  @if (thresholdRows().length) {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Radna točka i prag odluke</mat-card-title>
+        <mat-card-subtitle>
+          AUROC mjeri razdvojivost ocjena, ne odluku koju sistem stvarno vrati
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <table mat-table [dataSource]="thresholdRows()">
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef>Kategorija</th>
+            <td mat-cell *matCellDef="let r">{{ r.category }}</td>
+          </ng-container>
+          <ng-container matColumnDef="threshold">
+            <th mat-header-cell *matHeaderCellDef>Prag</th>
+            <td mat-cell *matCellDef="let r" class="num">{{ r.threshold | number: '1.2-2' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="tp">
+            <th mat-header-cell *matHeaderCellDef>TP</th>
+            <td mat-cell *matCellDef="let r" class="num">{{ r.tp }}</td>
+          </ng-container>
+          <ng-container matColumnDef="fp">
+            <th mat-header-cell *matHeaderCellDef>FP</th>
+            <td mat-cell *matCellDef="let r" class="num warn">{{ r.fp }}</td>
+          </ng-container>
+          <ng-container matColumnDef="tn">
+            <th mat-header-cell *matHeaderCellDef>TN</th>
+            <td mat-cell *matCellDef="let r" class="num">{{ r.tn }}</td>
+          </ng-container>
+          <ng-container matColumnDef="fn">
+            <th mat-header-cell *matHeaderCellDef>FN</th>
+            <td mat-cell *matCellDef="let r" class="num" [class.bad]="r.fn > 0">{{ r.fn }}</td>
+          </ng-container>
+          <ng-container matColumnDef="recall">
+            <th mat-header-cell *matHeaderCellDef>Odziv</th>
+            <td mat-cell *matCellDef="let r" class="num strong">
+              {{ r.recall | number: '1.4-4' }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="precision">
+            <th mat-header-cell *matHeaderCellDef>Preciznost</th>
+            <td mat-cell *matCellDef="let r" class="num">{{ r.precision | number: '1.4-4' }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="thresholdColumns"></tr>
+          <tr mat-row *matRowDef="let r; columns: thresholdColumns"></tr>
+        </table>
+
+        <div class="alarms">
+          @for (r of thresholdRows(); track r.category) {
+            <div class="alarm">
+              <dt>{{ r.category }}</dt>
+              <dd>
+                {{ r.fp }} od {{ r.good }} ispravnih dijelova lažno odbijeno
+                <strong>({{ r.falseAlarmRate | percent: '1.0-1' }})</strong>
+              </dd>
+              @if (r.zeroFn) {
+                <dd class="muted">
+                  Nula propuštenih zahtijeva prag {{ r.zeroFn.threshold | number: '1.2-2' }},
+                  uz {{ r.zeroFn.fp }} lažnih uzbuna.
+                </dd>
+              }
+            </div>
+          }
+        </div>
+
+        <p class="note">
+          Lažno pozitivan rezultat traži ponovni pregled dijela. Lažno negativan pušta
+          neispravan dio dalje. Prag je kalibrisan na skupu gdje defekti dominiraju, pa je
+          za proizvodnju, gdje je većina dijelova ispravna, sistematski prestrog.
+        </p>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (stageRows().length) {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Vrijeme obrade po fazama</mat-card-title>
+        <mat-card-subtitle>
+          prosjek u milisekundama, {{ latency()!.repeats_per_category }} slika po kategoriji ·
+          učitavanje modela {{ latency()!.model_load_seconds | number: '1.2-2' }} s
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <table mat-table [dataSource]="stageRows()">
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef>Kategorija</th>
+            <td mat-cell *matCellDef="let r">{{ r.category }}</td>
+          </ng-container>
+          @for (stage of ['decode', 'classify', 'detect', 'render', 'total']; track stage) {
+            <ng-container [matColumnDef]="stage">
+              <th mat-header-cell *matHeaderCellDef>{{ stage }}</th>
+              <td mat-cell *matCellDef="let r" class="num" [class.strong]="stage === 'total'">
+                {{ r[stage].mean | number: '1.0-0' }}
+              </td>
+            </ng-container>
+          }
+          <tr mat-header-row *matHeaderRowDef="stageColumns"></tr>
+          <tr mat-row *matRowDef="let r; columns: stageColumns"></tr>
+        </table>
+
+        <div class="shares">
+          @for (s of shares(); track s.stage) {
+            <div class="share">
+              <span class="label">{{ s.stage }}</span>
+              <span class="track">
+                <span class="value" [style.width.%]="s.value * 100"></span>
+              </span>
+              <span class="pct">{{ s.value | percent: '1.0-1' }}</span>
+            </div>
+          }
+        </div>
+
+        <p class="note">
+          Sama detekcija je manji dio vremena. Dominira crtanje toplotne mape i kodiranje
+          PNG-a u punoj rezoluciji, pa je to i mjesto za optimizaciju ako zatreba.
+        </p>
+      </mat-card-content>
+    </mat-card>
+  }
+
   @if (liveRows().length) {
     <mat-card>
       <mat-card-header>

@@ -39,6 +39,49 @@ const PAYLOAD = {
     confidence_threshold: 0.9,
     below_threshold: 1,
   },
+  thresholds: {
+    categories: {
+      screw: {
+        threshold: 0.5,
+        images: 160,
+        good: 41,
+        defective: 119,
+        at_threshold: {
+          tp: 119,
+          fp: 37,
+          tn: 4,
+          fn: 0,
+          precision: 0.7628,
+          recall: 1.0,
+          specificity: 0.0976,
+          accuracy: 0.7688,
+          f1: 0.8655,
+        },
+        zero_false_negative: { threshold: 0.5, fp: 37, fn: 0 },
+        latency_ms: { mean: 88.2, p50: 62, p95: 205.4, max: 492 },
+      },
+    },
+  },
+  latency: {
+    backbone: 'resnet18',
+    model_load_seconds: 1.4,
+    repeats_per_category: 20,
+    categories: {
+      screw: {
+        decode: { mean: 13, p50: 13, p95: 14, max: 15 },
+        classify: { mean: 24, p50: 23, p95: 28, max: 30 },
+        detect: { mean: 31, p50: 30, p95: 41, max: 45 },
+        render: { mean: 120, p50: 119, p95: 125, max: 130 },
+        total: { mean: 188, p50: 186, p95: 206, max: 215 },
+      },
+    },
+    share_of_total: {
+      render: 0.6506,
+      detect: 0.1379,
+      classify: 0.1206,
+      decode: 0.0909,
+    },
+  },
   routing_ablation: {
     images: 425,
     saturated_at_one: 415,
@@ -95,6 +138,14 @@ describe('Metrics page', () => {
 
     // live defect rate from the history
     expect(text).toContain('75%');
+
+    // the operating point: a perfect recall that still rejects most good parts
+    expect(text).toContain('37 od 41 ispravnih dijelova lažno odbijeno');
+    expect(text).toContain('90.2%');
+
+    // the stage breakdown, with rendering dominating
+    expect(text).toContain('65.1%');
+    expect(text).toContain('188');
     http.verify();
   });
 
