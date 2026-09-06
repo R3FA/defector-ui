@@ -1,0 +1,42 @@
+.bar {
+  display: flex;
+  gap: 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--mat-sys-surface-container);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font: var(--mat-sys-title-medium);
+  letter-spacing: 0.02em;
+}
+
+nav {
+  display: flex;
+  gap: 1.25rem;
+
+  a {
+    color: var(--mat-sys-on-surface-variant);
+    text-decoration: none;
+    font: var(--mat-sys-label-large);
+    padding: 0.25rem 0;
+    border-bottom: 2px solid transparent;
+
+    &:hover {
+      color: var(--mat-sys-on-surface);
+    }
+
+    &.active {
+      color: var(--mat-sys-primary);
+      border-bottom-color: var(--mat-sys-primary);
+    }
+  }
+}
+
+main {
+  padding: 1.5rem 1rem 3rem;
+}

@@ -1,0 +1,177 @@
+<div class="metrics">
+  @if (busy()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (error()) {
+    <mat-card>
+      <mat-card-content>
+        <div class="banner error">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ error() }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (detectors().length) {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Preciznost detektora</mat-card-title>
+        @if (config(); as cfg) {
+          <mat-card-subtitle>
+            {{ cfg.backbone }} · coreset {{ cfg.coreset_sampling_ratio }} ·
+            {{ cfg.image_size[0] }}×{{ cfg.image_size[1] }} sa isjekom
+            {{ cfg.center_crop_size[0] }}×{{ cfg.center_crop_size[1] }} · {{ cfg.accelerator }}
+          </mat-card-subtitle>
+        }
+      </mat-card-header>
+      <mat-card-content>
+        <table mat-table [dataSource]="detectors()">
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef>Kategorija</th>
+            <td mat-cell *matCellDef="let r">{{ r.category }}</td>
+          </ng-container>
+          <ng-container matColumnDef="imageAuroc">
+            <th mat-header-cell *matHeaderCellDef>AUROC slika</th>
+            <td mat-cell *matCellDef="let r" class="num strong">
+              {{ r.imageAuroc | number: '1.4-4' }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="published">
+            <th mat-header-cell *matHeaderCellDef>Objavljeno</th>
+            <td mat-cell *matCellDef="let r" class="num">
+              @if (r.published !== null) {
+                {{ r.published | number: '1.3-3' }}
+                <span class="delta" [class.up]="(delta(r) ?? 0) >= 0">
+                  {{ (delta(r) ?? 0) >= 0 ? '+' : '' }}{{ delta(r) | number: '1.4-4' }}
+                </span>
+              }
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="pixelAuroc">
+            <th mat-header-cell *matHeaderCellDef>AUROC piksel</th>
+            <td mat-cell *matCellDef="let r" class="num">{{ r.pixelAuroc | number: '1.4-4' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="aupro">
+            <th mat-header-cell *matHeaderCellDef>AUPRO</th>
+            <td mat-cell *matCellDef="let r" class="num">{{ r.aupro | number: '1.4-4' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="f1Max">
+            <th mat-header-cell *matHeaderCellDef>F1-max</th>
+            <td mat-cell *matCellDef="let r" class="num">{{ r.f1Max | number: '1.4-4' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="fitMinutes">
+            <th mat-header-cell *matHeaderCellDef>Trening</th>
+            <td mat-cell *matCellDef="let r" class="num">{{ r.fitMinutes | number: '1.1-1' }} min</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="detectorColumns"></tr>
+          <tr mat-row *matRowDef="let r; columns: detectorColumns"></tr>
+        </table>
+        <p class="note">
+          Kolona „Objavljeno" je objavljeni PatchCore rezultat za isti backbone, radi poređenja.
+        </p>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (classifier(); as clf) {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Prepoznavanje kategorije</mat-card-title>
+        <mat-card-subtitle>
+          linear probe nad zamrznutim {{ clf.backbone }} obilježjima ({{ clf.feature_dim }}-dim)
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <dl class="facts">
+          <div>
+            <dt>Tačnost, 5-fold CV</dt>
+            <dd>{{ clf.cv_accuracy_mean | percent: '1.2-2' }}</dd>
+          </div>
+          <div>
+            <dt>Tačnost na testnom skupu</dt>
+            <dd>{{ clf.test_accuracy | percent: '1.2-2' }}</dd>
+          </div>
+          <div>
+            <dt>Testnih slika</dt>
+            <dd>{{ clf.test_images }}</dd>
+          </div>
+          <div>
+            <dt>Ispod praga {{ clf.confidence_threshold }}</dt>
+            <dd>{{ clf.below_threshold }}</dd>
+          </div>
+        </dl>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (ablationRows().length) {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Zašto se ne porede tri detektora</mat-card-title>
+        <mat-card-subtitle>
+          tačnost određivanja kategorije na {{ ablation().images }} testnih slika
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <table class="plain">
+          <thead>
+            <tr>
+              <th>Strategija</th>
+              <th class="num">Tačnost</th>
+              <th class="num">Greške</th>
+              <th class="num">Izjednačenja</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of ablationRows(); track row.name) {
+              <tr>
+                <td>{{ row.name }}</td>
+                <td class="num strong">{{ row.accuracy | number: '1.4-4' }}</td>
+                <td class="num">{{ row.errors }}</td>
+                <td class="num">{{ row.ties }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <p class="note">
+          Na {{ ablation().saturated_at_one }} od {{ ablation().images }} slika dva ili više
+          modela zasiće normalizovanu ocjenu na 1.0, jer je post-procesor odsiječe na
+          interval [0, 1]. Zato izbor po najmanjoj normalizovanoj ocjeni pravi izjednačenja.
+        </p>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (liveRows().length) {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Udio neispravnih u radu</mat-card-title>
+        <mat-card-subtitle>iz historije analiza ovog sistema</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <table mat-table [dataSource]="liveRows()">
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef>Kategorija</th>
+            <td mat-cell *matCellDef="let r">{{ r.category }}</td>
+          </ng-container>
+          <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef>Ukupno</th>
+            <td mat-cell *matCellDef="let r" class="num">{{ r.total }}</td>
+          </ng-container>
+          <ng-container matColumnDef="defective">
+            <th mat-header-cell *matHeaderCellDef>Neispravnih</th>
+            <td mat-cell *matCellDef="let r" class="num">{{ r.defective }}</td>
+          </ng-container>
+          <ng-container matColumnDef="rate">
+            <th mat-header-cell *matHeaderCellDef>Udio</th>
+            <td mat-cell *matCellDef="let r" class="num strong">{{ r.rate | percent: '1.0-1' }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="liveColumns"></tr>
+          <tr mat-row *matRowDef="let r; columns: liveColumns"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

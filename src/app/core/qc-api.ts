@@ -51,7 +51,7 @@ export class QcApi {
     }
     return this.http
       .post<Analysis>('/api/analyze', body)
-      .pipe(catchError((error) => throwError(() => this.translate(error))));
+      .pipe(this.translated());
   }
 
   history(filters: HistoryFilters = {}): Observable<AnalysisPage> {
@@ -65,28 +65,45 @@ export class QcApi {
     if (filters.defective !== null && filters.defective !== undefined) {
       params['defective'] = String(filters.defective);
     }
-    return this.http.get<AnalysisPage>('/api/analyses', { params });
+    return this.http
+      .get<AnalysisPage>('/api/analyses', { params })
+      .pipe(this.translated());
   }
 
   analysis(id: number): Observable<Analysis> {
-    return this.http.get<Analysis>(`/api/analyses/${id}`);
+    return this.http
+      .get<Analysis>(`/api/analyses/${id}`)
+      .pipe(this.translated());
   }
 
   stats(days = 30): Observable<Stats> {
-    return this.http.get<Stats>('/api/analyses/stats', { params: { days: String(days) } });
+    return this.http
+      .get<Stats>('/api/analyses/stats', { params: { days: String(days) } })
+      .pipe(this.translated());
   }
 
   categories(): Observable<Categories> {
-    return this.http.get<Categories>('/api/categories');
+    return this.http.get<Categories>('/api/categories').pipe(this.translated());
   }
 
   metrics(): Observable<Record<string, unknown>> {
-    return this.http.get<Record<string, unknown>>('/api/metrics');
+    return this.http
+      .get<Record<string, unknown>>('/api/metrics')
+      .pipe(this.translated());
+  }
+
+  /** Applies translate() to any request, so no caller sees a raw HttpErrorResponse. */
+  private translated<T>() {
+    return catchError<T, Observable<never>>((error) =>
+      throwError(() => this.translate(error as HttpErrorResponse)),
+    );
   }
 
   private translate(error: HttpErrorResponse): Error {
     if (error.status === 409 && error.error?.detail) {
-      return new AmbiguousCategoryError(error.error.detail as AmbiguousCategory);
+      return new AmbiguousCategoryError(
+        error.error.detail as AmbiguousCategory,
+      );
     }
     if (error.status === 400) {
       const detail = error.error?.detail;
@@ -94,8 +111,16 @@ export class QcApi {
         typeof detail === 'string' ? detail : 'the upload was rejected',
       );
     }
+    if (error.status === 404) {
+      const detail = error.error?.detail;
+      return new Error(
+        typeof detail === 'string' ? detail : 'not found (status 404)',
+      );
+    }
     if (error.status === 0) {
-      return new Error('the backend is not reachable; is defector-api running on port 8000?');
+      return new Error(
+        'the backend is not reachable; is defector-api running on port 8000?',
+      );
     }
     return new Error(`request failed with status ${error.status}`);
   }

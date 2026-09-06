@@ -1,0 +1,145 @@
+<div class="analyze">
+  <mat-card class="panel">
+    <mat-card-header>
+      <mat-card-title>Analiza mašinskog dijela</mat-card-title>
+      <mat-card-subtitle>
+        Učitajte fotografiju. Sistem sam prepoznaje kategoriju dijela i provjerava
+        ima li vidljivih nedostataka.
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <input
+        #picker
+        type="file"
+        accept="image/png,image/jpeg,image/bmp"
+        hidden
+        (change)="pick($event)"
+      />
+
+      <div class="actions">
+        <button matButton="filled" (click)="picker.click()" [disabled]="busy()">
+          <mat-icon>upload</mat-icon>
+          Izaberi sliku
+        </button>
+        <button
+          matButton="tonal"
+          (click)="submit()"
+          [disabled]="!file() || busy()"
+        >
+          <mat-icon>science</mat-icon>
+          Analiziraj
+        </button>
+        @if (file()) {
+          <button matButton (click)="clear()" [disabled]="busy()">Očisti</button>
+        }
+      </div>
+
+      @if (file()) {
+        <p class="filename">{{ file()!.name }}</p>
+      }
+
+      @if (busy()) {
+        <mat-progress-bar mode="indeterminate" />
+      }
+
+      @if (error()) {
+        <div class="banner error">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ error() }}</span>
+        </div>
+      }
+
+      <!-- 409: the classifier was not confident enough, so the user chooses. -->
+      @if (ambiguous(); as info) {
+        <div class="banner warn">
+          <mat-icon>help_outline</mat-icon>
+          <div>
+            <p>
+              Kategorija dijela nije određena sa dovoljnom sigurnošću
+              ({{ percent(info.confidence) }}%). Izaberite je ručno.
+            </p>
+            <div class="chips">
+              @for (name of info.categories; track name) {
+                <button matButton="outlined" (click)="chooseAndRetry(name)">
+                  {{ name }} ({{ percent(info.probabilities[name]) }}%)
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  @if (result(); as analysis) {
+    <mat-card class="panel">
+      <mat-card-content>
+        <div class="verdict" [class.bad]="analysis.is_defective">
+          <mat-icon>{{ analysis.is_defective ? 'cancel' : 'check_circle' }}</mat-icon>
+          <div>
+            <h2>{{ analysis.is_defective ? 'NEISPRAVAN' : 'ISPRAVAN' }}</h2>
+            <p>
+              {{ analysis.category }}
+              @if (analysis.category_auto) {
+                <span class="muted">
+                  · prepoznato automatski, {{ percent(analysis.category_confidence ?? 0) }}%
+                </span>
+              } @else {
+                <span class="muted">· kategorija izabrana ručno</span>
+              }
+            </p>
+          </div>
+        </div>
+
+        <dl class="facts">
+          <div>
+            <dt>Ocjena odstupanja</dt>
+            <dd>{{ analysis.score | number: '1.4-4' }}</dd>
+          </div>
+          <div>
+            <dt>Prag odluke</dt>
+            <dd>{{ analysis.threshold | number: '1.2-2' }}</dd>
+          </div>
+          <div>
+            <dt>Površina nedostatka</dt>
+            <dd>{{ analysis.defect_area_px }} px</dd>
+          </div>
+          <div>
+            <dt>Vrijeme obrade</dt>
+            <dd>{{ analysis.duration_ms }} ms</dd>
+          </div>
+        </dl>
+
+        <div class="meter">
+          <div class="bar">
+            <div class="fill" [class.bad]="analysis.is_defective" [style.width.%]="scorePercent()"></div>
+            <div class="mark" [style.left.%]="analysis.threshold * 100"></div>
+          </div>
+          <p class="muted">Oznaka na traci je prag odluke.</p>
+        </div>
+
+        <div class="images">
+          <figure>
+            <figcaption>Učitana slika</figcaption>
+            <img [src]="analysis.original_url" alt="Učitana fotografija dijela" />
+          </figure>
+          <figure>
+            <figcaption>Toplotna mapa</figcaption>
+            @if (localised()) {
+              <img [src]="analysis.heatmap_url" alt="Toplotna mapa nedostatka" />
+            } @else {
+              <div class="placeholder">
+                <mat-icon>search_off</mat-icon>
+                <p>
+                  Nijedan piksel ne prelazi prag na nivou piksela, pa nedostatak nije
+                  lokalizovan.
+                </p>
+              </div>
+            }
+          </figure>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>
