@@ -149,6 +149,35 @@ describe('Metrics page', () => {
     http.verify();
   });
 
+  it('compares against the reference for the backbone actually used', async () => {
+    const fixture = TestBed.createComponent(Metrics);
+    await fixture.whenStable();
+
+    http.expectOne('/api/metrics').flush({
+      detectors: {
+        config: { ...PAYLOAD.detectors.config, backbone: 'wide_resnet50_2' },
+        runs: [
+          {
+            category: 'screw',
+            metrics: { image_AUROC: 0.9738 },
+            fit_seconds: 252,
+          },
+        ],
+      },
+    });
+    http
+      .expectOne((r) => r.url === '/api/analyses/stats')
+      .flush({ by_category: {}, daily: [] });
+    await fixture.whenStable();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    // wide_resnet50_2 reference, not the resnet18 one
+    expect(text).toContain('0.960');
+    expect(text).toContain('+0.0138');
+    expect(text).not.toContain('0.943');
+    http.verify();
+  });
+
   it('shows an error when the artifacts are missing', async () => {
     const fixture = TestBed.createComponent(Metrics);
     await fixture.whenStable();

@@ -21,14 +21,15 @@ interface DetectorRow {
 }
 
 /**
- * Published image-level AUROC for PatchCore with a resnet18 backbone, from the
- * anomalib benchmark. Shown next to the measured numbers so the table answers
- * "is this in the right range" without leaving the page.
+ * Published image-level AUROC for PatchCore from the anomalib benchmark, keyed
+ * by backbone. Shown next to the measured numbers so the table answers "is
+ * this in the right range" without leaving the page. Selected from the backbone
+ * recorded in the artifact, so switching backbones does not silently compare
+ * against the wrong reference.
  */
-const PUBLISHED_RESNET18: Record<string, number> = {
-  screw: 0.943,
-  metal_nut: 0.991,
-  cable: 0.986,
+const PUBLISHED: Record<string, Record<string, number>> = {
+  resnet18: { screw: 0.943, metal_nut: 0.991, cable: 0.986 },
+  wide_resnet50_2: { screw: 0.96, metal_nut: 0.994, cable: 0.99 },
 };
 
 @Component({
@@ -87,6 +88,8 @@ export class Metrics {
 
   protected readonly detectors = computed<DetectorRow[]>(() => {
     const runs = this.payload()?.['detectors']?.runs ?? [];
+    const backbone = this.config()?.backbone ?? '';
+    const reference = PUBLISHED[backbone] ?? {};
     return runs.map((run: any) => ({
       category: run.category,
       imageAuroc: run.metrics?.image_AUROC ?? 0,
@@ -94,7 +97,7 @@ export class Metrics {
       aupro: run.metrics?.pixel_AUPRO ?? 0,
       f1Max: run.metrics?.image_F1Max ?? 0,
       fitMinutes: (run.fit_seconds ?? 0) / 60,
-      published: PUBLISHED_RESNET18[run.category] ?? null,
+      published: reference[run.category] ?? null,
     }));
   });
 
