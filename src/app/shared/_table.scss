@@ -1,0 +1,46 @@
+// Shared table rules.
+//
+// Angular Material puts a `mat-column-<name>` class on both the header cell and
+// the data cells of a column, so aligning a column is a single rule rather than
+// a class repeated on every <th> and <td>. Aligning only the data cells, which
+// is the easy mistake, leaves the header text on the opposite edge.
+
+/// Right-aligns a numeric column, header included, and keeps digits from
+/// shifting width between rows.
+@mixin numeric-columns($names) {
+  @each $name in $names {
+    .mat-column-#{$name} {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+  }
+}
+
+/// Fixes a column to a width so it does not resize as content changes between
+/// pages. Without this the same table looks different on page 1 and page 2.
+@mixin column-widths($map) {
+  @each $name, $width in $map {
+    .mat-column-#{$name} {
+      width: $width;
+    }
+  }
+}
+
+/// Base layout: stable columns, and horizontal scrolling instead of squeezing
+/// when the viewport is narrower than the table needs.
+@mixin base($min-width: 640px) {
+  overflow-x: auto;
+
+  table {
+    width: 100%;
+    min-width: $min-width;
+    table-layout: fixed;
+  }
+
+  th,
+  td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

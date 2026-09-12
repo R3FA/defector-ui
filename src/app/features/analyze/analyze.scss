@@ -172,3 +172,15 @@
     font: var(--mat-sys-body-small);
   }
 }
+
+.preview {
+  margin: 0 0 1rem;
+  max-width: 320px;
+
+  img {
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid var(--mat-sys-outline-variant);
+    background: var(--mat-sys-surface-variant);
+  }
+}

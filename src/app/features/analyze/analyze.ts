@@ -51,14 +51,18 @@ export class Analyze {
     () => (this.result()?.defect_area_px ?? 0) > 0,
   );
 
-  protected readonly scorePercent = computed(() => {
-    const value = this.result();
-    return value ? Math.round(value.score * 100) : 0;
-  });
+  protected readonly scorePercent = computed(() =>
+    this.percent(this.result()?.score ?? 0),
+  );
 
   protected pick(event: Event): void {
     const input = event.target as HTMLInputElement;
     const selected = input.files?.[0] ?? null;
+
+    // Release the previous object URL first. Picking several files in a row
+    // without clearing would otherwise leak one blob per pick.
+    this.releasePreview();
+
     this.reset();
     this.file.set(selected);
     if (selected) {
@@ -100,13 +104,17 @@ export class Analyze {
   }
 
   protected clear(): void {
+    this.releasePreview();
+    this.file.set(null);
+    this.reset();
+  }
+
+  private releasePreview(): void {
     const url = this.previewUrl();
     if (url) {
       URL.revokeObjectURL(url);
     }
-    this.file.set(null);
     this.previewUrl.set(null);
-    this.reset();
   }
 
   protected percent(value: number): number {

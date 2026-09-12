@@ -144,4 +144,79 @@ describe('Analyze page', () => {
       'the file is not a readable image',
     );
   });
+
+  it('previews the selected file and releases the previous object URL', async () => {
+    const created: string[] = [];
+    const revoked: string[] = [];
+    let counter = 0;
+    vi.spyOn(URL, 'createObjectURL').mockImplementation(() => {
+      const url = `blob:test/${++counter}`;
+      created.push(url);
+      return url;
+    });
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation((url: string) => {
+      revoked.push(url);
+    });
+
+    const fixture = TestBed.createComponent(Analyze);
+    await fixture.whenStable();
+    const input = (fixture.nativeElement as HTMLElement).querySelector(
+      'input[type=file]',
+    ) as HTMLInputElement;
+
+    const dispatch = (file: File) => {
+      Object.defineProperty(input, 'files', {
+        value: [file],
+        configurable: true,
+      });
+      input.dispatchEvent(new Event('change'));
+    };
+
+    dispatch(pngFile('first.png'));
+    await fixture.whenStable();
+    let preview = (fixture.nativeElement as HTMLElement).querySelector(
+      '.preview img',
+    );
+    expect(preview?.getAttribute('src')).toBe(created[0]);
+    expect(revoked).toEqual([]);
+
+    // Picking again must release the first blob rather than leak it.
+    dispatch(pngFile('second.png'));
+    await fixture.whenStable();
+    expect(revoked).toEqual([created[0]]);
+    preview = (fixture.nativeElement as HTMLElement).querySelector(
+      '.preview img',
+    );
+    expect(preview?.getAttribute('src')).toBe(created[1]);
+
+    vi.restoreAllMocks();
+  });
+
+  it('replaces the preview with the analysed images once a result arrives', async () => {
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test/x');
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+
+    const fixture = TestBed.createComponent(Analyze);
+    const page = fixture.componentInstance as unknown as {
+      file: { set(v: File): void };
+      previewUrl: { set(v: string): void };
+      submit(): void;
+    };
+    page.file.set(pngFile());
+    page.previewUrl.set('blob:test/x');
+    await fixture.whenStable();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.preview img'),
+    ).toBeTruthy();
+
+    page.submit();
+    http.expectOne('/api/analyze').flush(DEFECTIVE);
+    await fixture.whenStable();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('.preview img')).toBeNull();
+    expect(root.querySelector('img[alt*="Toplotna"]')).toBeTruthy();
+
+    vi.restoreAllMocks();
+  });
 });

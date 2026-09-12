@@ -1,3 +1,5 @@
+@use "../../shared/table";
+
 .metrics {
   display: grid;
   gap: 1rem;
@@ -5,19 +7,37 @@
   margin: 0 auto;
 }
 
-table {
-  width: 100%;
+.table-wrap {
+  @include table.base(620px);
+  // Every numeric column across the four tables on this page.
+  @include table.numeric-columns(
+    imageAuroc published pixelAuroc aupro f1Max fitMinutes total defective rate
+      threshold tp fp tn fn recall precision decode classify detect render
+  );
+  @include table.column-widths(
+    (
+      category: 7.5rem,
+      published: 9rem,
+    )
+  );
 }
 
 table.plain {
+  width: 100%;
   border-collapse: collapse;
   margin-top: 0.5rem;
 
   th,
   td {
     padding: 0.625rem 0.75rem;
-    text-align: left;
     border-bottom: 1px solid var(--mat-sys-outline-variant);
+
+    // Only cells that are not numeric align left. Writing `text-align: left`
+    // unconditionally here outranks `.num` on specificity (0,1,2 against 0,1,0),
+    // which silently left-aligned the whole table despite the class.
+    &:not(.num) {
+      text-align: left;
+    }
   }
 
   th {
@@ -29,6 +49,7 @@ table.plain {
 .num {
   text-align: right;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .strong {
