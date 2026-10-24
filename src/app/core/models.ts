@@ -59,7 +59,7 @@ export interface Stats {
   daily: DailyPoint[];
 }
 
-/** Body of the 409 returned when the classifier is not confident enough. */
+/** The `detail` of the 409 body, returned when the classifier is not confident enough. */
 export interface AmbiguousCategory {
   detail: string;
   confidence: number;
