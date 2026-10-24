@@ -45,6 +45,15 @@ uvicorn defector.api.app:app --reload
 - Angular Material 22 (azure-blue theme)
 - Vitest for unit tests
 
+## Dependency notes
+
+- `package.json` overrides `vite` to 8.3.5. `@angular/build` 22.2.4 pins vite
+  8.3.0, which has known vulnerabilities in the dev server (`ng serve`); 8.3.5
+  fixes them. Vite is not part of the production build. Remove the override
+  once an `@angular/build` release pins vite 8.3.3 or later.
+- TypeScript stays on 6.0: `@angular/compiler-cli` 22.2 accepts `>=6.0 <6.1`,
+  so TypeScript 7 would not build.
+
 ## Licensing
 
 GNU General Public License v2.0; see [LICENSE](LICENSE).
