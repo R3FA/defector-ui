@@ -113,7 +113,9 @@ export class QcApi {
     if (error.status === 404) {
       return new Error(message ?? 'Traženi podatak nije pronađen.');
     }
-    if (error.status === 0) {
+    // 0 is no response at all. Behind the dev server's proxy, or any reverse
+    // proxy, a backend that is down shows up as 502-504 instead.
+    if ([0, 502, 503, 504].includes(error.status)) {
       return new Error(
         'Server nije dostupan. Provjerite da li je defector-api pokrenut na portu 8000.',
       );
