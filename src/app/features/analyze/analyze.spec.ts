@@ -124,7 +124,7 @@ describe('Analyze page', () => {
     expect(root.textContent).toContain('screw (38%)');
   });
 
-  it('shows the backend message when an upload is rejected', async () => {
+  it('shows the rejection in Bosnian when an upload is rejected', async () => {
     const fixture = TestBed.createComponent(Analyze);
     const page = fixture.componentInstance as unknown as {
       file: { set(v: File): void };
@@ -143,7 +143,7 @@ describe('Analyze page', () => {
     await fixture.whenStable();
 
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      'the file is not a readable image',
+      'Fajl nije slika koju je moguće pročitati.',
     );
   });
 

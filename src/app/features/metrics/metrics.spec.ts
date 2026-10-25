@@ -196,10 +196,10 @@ describe('Metrics page', () => {
       .flush({ by_category: {}, daily: [] });
     await fixture.whenStable();
 
-    // The service surfaces the backend's own detail rather than a generic
+    // The backend's detail is translated rather than replaced by a generic
     // status message, so the user is told what is actually missing.
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      'no evaluation artifacts found',
+      'Rezultati evaluacije nisu pronađeni.',
     );
     http.verify();
   });

@@ -24,7 +24,7 @@ export class AmbiguousCategoryError extends Error {
   }
 }
 
-/** Raised for a rejected upload (400) so the message can be shown verbatim. */
+/** Raised for a rejected upload (400); the message is already in Bosnian. */
 export class UploadRejectedError extends Error {
   constructor(message: string) {
     super(message);
@@ -105,23 +105,49 @@ export class QcApi {
         error.error.detail as AmbiguousCategory,
       );
     }
+    const detail = error.error?.detail;
+    const message = typeof detail === 'string' ? bosnian(detail) : null;
     if (error.status === 400) {
-      const detail = error.error?.detail;
-      return new UploadRejectedError(
-        typeof detail === 'string' ? detail : 'the upload was rejected',
-      );
+      return new UploadRejectedError(message ?? 'Fajl je odbijen.');
     }
     if (error.status === 404) {
-      const detail = error.error?.detail;
-      return new Error(
-        typeof detail === 'string' ? detail : 'not found (status 404)',
-      );
+      return new Error(message ?? 'Traženi podatak nije pronađen.');
     }
     if (error.status === 0) {
       return new Error(
-        'the backend is not reachable; is defector-api running on port 8000?',
+        'Server nije dostupan. Provjerite da li je defector-api pokrenut na portu 8000.',
       );
     }
-    return new Error(`request failed with status ${error.status}`);
+    return new Error(`Zahtjev nije uspio (status ${error.status}).`);
   }
+}
+
+/**
+ * The API answers in English for any client; the interface shows Bosnian.
+ * Null for a detail this table does not know, so the caller falls back to a
+ * generic message rather than showing English.
+ */
+function bosnian(detail: string): string | null {
+  const limit = detail.match(/larger than the (\d+) MB limit/);
+  if (limit) {
+    return `Fajl je veći od dozvoljenih ${limit[1]} MB.`;
+  }
+  const allowed = detail.match(/is not supported; allowed: (.+)$/);
+  if (allowed) {
+    return `Format fajla nije podržan. Dozvoljeni formati: ${allowed[1]}.`;
+  }
+  const known: [string, string][] = [
+    ['file is empty', 'Učitani fajl je prazan.'],
+    ['not a readable image', 'Fajl nije slika koju je moguće pročitati.'],
+    ['unreasonably large', 'Rezolucija slike je prevelika.'],
+    ['could not be decoded', 'Slika je oštećena i ne može se pročitati.'],
+    ['unknown category', 'Nepoznata kategorija dijela.'],
+    [
+      'no evaluation artifacts',
+      'Rezultati evaluacije nisu pronađeni. Pokrenite skripte za evaluaciju.',
+    ],
+    ['analysis not found', 'Analiza nije pronađena.'],
+    ['missing on disk', 'Slika ove analize nedostaje na disku.'],
+  ];
+  return known.find(([phrase]) => detail.includes(phrase))?.[1] ?? null;
 }
