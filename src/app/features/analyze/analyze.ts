@@ -8,11 +8,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 
 import { AmbiguousCategory, Analysis } from '../../core/models';
-import {
-  AmbiguousCategoryError,
-  QcApi,
-  UploadRejectedError,
-} from '../../core/qc-api';
+import { AmbiguousCategoryError, QcApi } from '../../core/qc-api';
 
 @Component({
   selector: 'app-analyze',
@@ -89,8 +85,6 @@ export class Analyze {
         this.busy.set(false);
         if (failure instanceof AmbiguousCategoryError) {
           this.ambiguous.set(failure.info);
-        } else if (failure instanceof UploadRejectedError) {
-          this.error.set(failure.message);
         } else {
           this.error.set(failure.message);
         }
