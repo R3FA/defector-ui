@@ -6,6 +6,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
+import { bosnianLocale } from './core/locale';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -15,5 +16,6 @@ export const appConfig: ApplicationConfig = {
     // option is deprecated. Upload progress would need withXhr(), which this
     // app does not require.
     provideHttpClient(),
+    bosnianLocale,
   ],
 };

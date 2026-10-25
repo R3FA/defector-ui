@@ -81,12 +81,12 @@
 
           <ng-container matColumnDef="area">
             <th mat-header-cell *matHeaderCellDef>Površina</th>
-            <td mat-cell *matCellDef="let row">{{ row.defect_area_px }} px</td>
+            <td mat-cell *matCellDef="let row">{{ row.defect_area_px | number }} px</td>
           </ng-container>
 
           <ng-container matColumnDef="duration">
             <th mat-header-cell *matHeaderCellDef>Trajanje</th>
-            <td mat-cell *matCellDef="let row">{{ row.duration_ms }} ms</td>
+            <td mat-cell *matCellDef="let row">{{ row.duration_ms | number }} ms</td>
           </ng-container>
 
           <ng-container matColumnDef="open">

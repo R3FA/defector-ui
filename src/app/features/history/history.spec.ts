@@ -6,6 +6,7 @@ import {
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
+import { bosnianLocale } from '../../core/locale';
 import { Analysis } from '../../core/models';
 import { History } from './history';
 
@@ -34,6 +35,7 @@ describe('History page', () => {
       imports: [History],
       providers: [
         provideZonelessChangeDetection(),
+        bosnianLocale,
         provideHttpClient(),
         provideHttpClientTesting(),
       ],

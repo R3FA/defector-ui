@@ -6,6 +6,7 @@ import {
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
+import { bosnianLocale } from '../../core/locale';
 import { Metrics } from './metrics';
 
 const PAYLOAD = {
@@ -100,6 +101,7 @@ describe('Metrics page', () => {
       imports: [Metrics],
       providers: [
         provideZonelessChangeDetection(),
+        bosnianLocale,
         provideHttpClient(),
         provideHttpClientTesting(),
       ],
@@ -123,17 +125,17 @@ describe('Metrics page', () => {
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
 
     // measured against the published figure, with the delta
-    expect(text).toContain('0.9527');
-    expect(text).toContain('0.943');
-    expect(text).toContain('+0.0097');
+    expect(text).toContain('0,9527');
+    expect(text).toContain('0,943');
+    expect(text).toContain('+0,0097');
 
     // classifier report
-    expect(text).toContain('100.00%');
+    expect(text).toContain('100,00%');
     expect(text).toContain('425');
 
     // the ablation, including why the naive strategy fails
     expect(text).toContain('A normalised pred_score');
-    expect(text).toContain('0.8682');
+    expect(text).toContain('0,8682');
     expect(text).toContain('415');
 
     // live defect rate from the history
@@ -141,10 +143,10 @@ describe('Metrics page', () => {
 
     // the operating point: a perfect recall that still rejects most good parts
     expect(text).toContain('37 od 41 ispravnih dijelova lažno odbijeno');
-    expect(text).toContain('90.2%');
+    expect(text).toContain('90,2%');
 
     // the stage breakdown, with rendering dominating
-    expect(text).toContain('65.1%');
+    expect(text).toContain('65,1%');
     expect(text).toContain('188');
     http.verify();
   });
@@ -172,9 +174,9 @@ describe('Metrics page', () => {
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     // wide_resnet50_2 reference, not the resnet18 one
-    expect(text).toContain('0.960');
-    expect(text).toContain('+0.0138');
-    expect(text).not.toContain('0.943');
+    expect(text).toContain('0,960');
+    expect(text).toContain('+0,0138');
+    expect(text).not.toContain('0,943');
     http.verify();
   });
 

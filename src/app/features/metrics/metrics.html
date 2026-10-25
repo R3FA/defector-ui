@@ -16,7 +16,7 @@
       <mat-card-title>Preciznost detektora</mat-card-title>
       @if (config(); as cfg) {
       <mat-card-subtitle>
-        {{ cfg.backbone }} · coreset {{ cfg.coreset_sampling_ratio }} · {{
+        {{ cfg.backbone }} · coreset {{ cfg.coreset_sampling_ratio | number }} · {{
         cfg.image_size[0] }}×{{ cfg.image_size[1] }} sa isjekom {{
         cfg.center_crop_size[0] }}×{{ cfg.center_crop_size[1] }} · {{
         cfg.accelerator }}
@@ -105,7 +105,7 @@
           <dd>{{ clf.test_images }}</dd>
         </div>
         <div>
-          <dt>Ispod praga {{ clf.confidence_threshold }}</dt>
+          <dt>Ispod praga {{ clf.confidence_threshold | number: '1.2-2' }}</dt>
           <dd>{{ clf.below_threshold }}</dd>
         </div>
       </dl>
@@ -142,7 +142,7 @@
       </table>
       <p class="note">
         Na {{ ablation().saturated_at_one }} od {{ ablation().images }} slika
-        dva ili više modela zasiće normalizovanu ocjenu na 1.0, jer je
+        dva ili više modela zasiće normalizovanu ocjenu na 1,0, jer je
         post-procesor odsiječe na interval [0, 1]. Zato izbor po najmanjoj
         normalizovanoj ocjeni pravi izjednačenja.
       </p>

@@ -6,6 +6,7 @@ import {
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
+import { bosnianLocale } from '../../core/locale';
 import { Analysis } from '../../core/models';
 import { Analyze } from './analyze';
 
@@ -38,6 +39,7 @@ describe('Analyze page', () => {
       imports: [Analyze],
       providers: [
         provideZonelessChangeDetection(),
+        bosnianLocale,
         provideHttpClient(),
         provideHttpClientTesting(),
       ],
@@ -72,8 +74,8 @@ describe('Analyze page', () => {
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain('NEISPRAVAN');
     expect(root.textContent).toContain('metal_nut');
-    expect(root.textContent).toContain('0.9099');
-    expect(root.textContent).toContain('4531');
+    expect(root.textContent).toContain('0,9099');
+    expect(root.textContent).toContain('4.531');
     expect(root.querySelector('img[alt*="Toplotna"]')).toBeTruthy();
   });
 
