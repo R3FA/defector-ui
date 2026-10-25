@@ -7,7 +7,17 @@ detection (PatchCore, MVTec AD).
 Part of a bachelor's thesis project at the Faculty of Information Technologies,
 University "Džemal Bijedić" in Mostar.
 
-> **Status:** in development.
+> **Status:** complete for the thesis.
+
+## Pages
+
+The interface is in Bosnian and formats numbers the Bosnian way (0,50).
+
+| Route | Page |
+|---|---|
+| `/` | Analysis: upload a photo, get the verdict, score, threshold and heatmap; pick the category by hand when the backend cannot |
+| `/historija` | History: past analyses, filtered by category and outcome, each one reopenable |
+| `/metrike` | Metrics: evaluation results served by the backend, plus the defect rate from the history |
 
 ## Requirements
 
@@ -37,6 +47,18 @@ Start the backend separately:
 ```bash
 cd ../defector-api && source .venv/bin/activate
 uvicorn defector.api.app:app --reload
+```
+
+The backend opens port 8000 only after its models have loaded. Until it logs
+`Uvicorn running on http://127.0.0.1:8000`, the dev server reports
+`ECONNREFUSED` for `/api` requests and the page shows that the server is not
+reachable; reload once the backend is up.
+
+Tests and production build:
+
+```bash
+npm test          # Vitest through the Angular builder; not `npx vitest`
+npm run build     # output in dist/defector-ui
 ```
 
 ## Stack
