@@ -63,15 +63,16 @@ export class History {
       error: () => this.categories.set([]),
     });
 
-    // Refetches whenever a filter or the page changes.
-    effect(() => {
+    // Refetches whenever a filter or the page changes. The previous request is
+    // cancelled, so a slow older response cannot overwrite a newer one.
+    effect((onCleanup) => {
       const category = this.categoryFilter();
       const defective = this.defectiveFilter();
       const page = this.page();
 
       this.busy.set(true);
       this.error.set(null);
-      this.api
+      const request = this.api
         .history({
           category,
           defective,
@@ -90,6 +91,7 @@ export class History {
             this.busy.set(false);
           },
         });
+      onCleanup(() => request.unsubscribe());
     });
   }
 
