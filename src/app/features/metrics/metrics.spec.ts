@@ -142,7 +142,7 @@ describe('Metrics page', () => {
     expect(text).toContain('75%');
 
     // the operating point: a perfect recall that still rejects most good parts
-    expect(text).toContain('37 od 41 ispravnih dijelova lažno odbijeno');
+    expect(text).toContain('Lažno odbijeno ispravnih: 37 / 41');
     expect(text).toContain('90,2%');
 
     // the stage breakdown, with rendering dominating

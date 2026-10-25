@@ -209,13 +209,13 @@
         <div class="alarm">
           <dt>{{ r.category }}</dt>
           <dd>
-            {{ r.fp }} od {{ r.good }} ispravnih dijelova lažno odbijeno
+            Lažno odbijeno ispravnih: {{ r.fp }} / {{ r.good }}
             <strong>({{ r.falseAlarmRate | percent: '1.0-1' }})</strong>
           </dd>
           @if (r.zeroFn) {
           <dd class="muted">
-            Nula propuštenih zahtijeva prag {{ r.zeroFn.threshold | number:
-            '1.2-2' }}, uz {{ r.zeroFn.fp }} lažnih uzbuna.
+            Za nula propuštenih potreban je prag {{ r.zeroFn.threshold | number:
+            '1.2-2' }} (lažnih uzbuna: {{ r.zeroFn.fp }}).
           </dd>
           }
         </div>

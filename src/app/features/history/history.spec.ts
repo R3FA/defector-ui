@@ -67,7 +67,7 @@ describe('History page', () => {
     await fixture.whenStable();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.textContent).toContain('2 zapisa');
+    expect(root.textContent).toContain('Ukupno zapisa: 2');
     const tags = Array.from(root.querySelectorAll('.tag')).map((t) =>
       t.textContent?.trim(),
     );
@@ -91,7 +91,7 @@ describe('History page', () => {
     await fixture.whenStable();
 
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      '1 zapisa',
+      'Ukupno zapisa: 1',
     );
     http.verify();
   });
