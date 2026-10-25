@@ -17,7 +17,7 @@ export interface Analysis {
   is_defective: boolean;
   score: number;
   threshold: number;
-  /** Pixels above the pixel threshold. Zero means the verdict is not localised. */
+  /** Photo pixels above the pixel threshold. Zero means the verdict is not localised. */
   defect_area_px: number;
   duration_ms: number;
   original_url: string;
